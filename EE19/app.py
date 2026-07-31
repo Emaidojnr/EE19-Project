@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import numpy as np
 from PIL import Image
@@ -6,14 +7,20 @@ import tensorflow as tf
 imgSize = 120
 classNames = ["Non-Cracked", "Cracked"]
 
-st.set_page_config(page_title="Concrete Crack Detection", page_icon="🧱")
+st.set_page_config(page_title="Concrete Crack Detection")
+
+root = os.path.dirname(os.path.abspath(__file__))
 
 
 @st.cache_resource
 def loadModels():
-    crackModel = tf.keras.models.load_model("crackDetectionModel.keras")
-    anomalyModel = tf.keras.models.load_model("anomalyDetector.keras")
-    with open("anomalyThreshold.txt", "r") as f:
+    crack_path = os.path.join(root, "crackDetectionModel.keras")
+    anomaly_path = os.path.join(root, "anomalyDetector.keras")
+    threshold_path = os.path.join(root, "anomalyThreshold.txt")
+
+    crackModel = tf.keras.models.load_model(crack_path)
+    anomalyModel = tf.keras.models.load_model(anomaly_path)
+    with open(threshold_path, "r") as f:
         threshold = float(f.read())
     return crackModel, anomalyModel, threshold
 
@@ -33,7 +40,6 @@ if uploadedFile is not None:
     arr = np.array(resized, dtype="float32") / 255.0
     arr = np.expand_dims(arr, axis=0)
 
-    
     reconstructed = anomalyModel.predict(arr)
     reconError = np.mean(np.square(arr - reconstructed))
 
